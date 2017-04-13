@@ -91,6 +91,9 @@ int main(int argc, char *argv[]) {
 	}
 	mar = 0;
 
+	close(fd);
+	free(file);
+
 	while(1) {
 
 		// T0 - PC out MAR in
@@ -158,6 +161,8 @@ int main(int argc, char *argv[]) {
 				return -1;
 		}
 	}
+
+	free(ram);
 }
 
 
