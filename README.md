@@ -1,6 +1,6 @@
 # be8 
 
-This is a 8-bit computer emulator based off (Ben Eater's bread board computer)[https://www.youtube.com/watch?v=HyznrdDSSGM]. 
+This is a 8-bit computer emulator based off [Ben Eater's bread board computer](https://www.youtube.com/watch?v=HyznrdDSSGM). 
 
 ## Building 
 
