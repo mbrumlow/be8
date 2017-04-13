@@ -35,7 +35,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#define RAM_SIZE (16384)
+#define RAM_SIZE (16)
 
 #define DEBUGF(fmt, ...) \
 	do { if(debug) fprintf(stderr, fmt, __VA_ARGS__); } while(0)
@@ -86,7 +86,7 @@ int main(int argc, char *argv[]) {
 		return -1;
 	}
 
-	while( read(fd, &x, sizeof(x)) != 0 ) {
+	while( read(fd, &x, sizeof(x)) != 0 && mar < RAM_SIZE) {
 		ram[mar++] = x;
 	}
 	mar = 0;
