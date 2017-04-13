@@ -54,7 +54,7 @@ int main(int argc, char *argv[]) {
 	bool debug = false;
 	char *file = NULL;
 
-	for( optind = 1; optind < argc; optind++) {
+	for( int optind = 1; optind < argc; optind++) {
 		if( argv[optind][0] == '-' ) {
 			switch( argv[optind][1] ) {
 				case 'd': debug = true; break;
@@ -66,7 +66,6 @@ int main(int argc, char *argv[]) {
 			file = strdup(argv[optind]);
 		}
 	}
-
 
 	if(!file) {
 		fprintf(stderr, "%s: no input file\n", argv[0]);
