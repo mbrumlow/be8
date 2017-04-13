@@ -4,9 +4,22 @@ This is a 8-bit computer emulator based off Ben Eater's bread board computer [1]
 
 ## Building 
 
+```
+make
+```
+
 This should build without much fuss on any modern linux distro just by typing 'make'. 
 
 ## Running 
+
+Normal 
+```
+./be8 [path to program]
+```
+Debug 
+```
+./be8 -d [path to program]
+```
 
 Included are two programs. Both programs were feathred in Ben Eater's videos. 
 
