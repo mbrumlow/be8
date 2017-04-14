@@ -11,6 +11,6 @@ sta [y]
 lda [x]
 jc 0x0
 jmp 0x3
-db [x] 0
-db [y] 0
-db [z] 0
+db x 0
+db y 0
+db z 0

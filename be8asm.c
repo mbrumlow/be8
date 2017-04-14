@@ -41,15 +41,38 @@ struct db_entry {
 	uint8_t off;
 };
 
+struct instruction {
+	char name[8];
+	uint8_t control;
+	bool args;
+	uint8_t size;
+};
+
 char *token(int fd);
 void compile(int fdin, int fdout, char *t, struct db_entry db[]);
+
+static struct instruction instructions[] = {
+	{ .name = "lda", .control = 0x1, .args = true, .size = 1  },
+	{ .name = "add", .control = 0x2, .args = true, .size = 1  },
+	{ .name = "sta", .control = 0x4, .args = true, .size = 1  },
+	{ .name = "out", .control = 0x5, .args = false, .size = 1  },
+	{ .name = "jmp", .control = 0x6, .args = true, .size = 1  },
+	{ .name = "ldi", .control = 0x7, .args = true, .size = 1  },
+	{ .name = "jc",  .control = 0x8, .args = true, .size = 1  },
+	{ .name = "hlt", .control = 0xf, .args = false, .size = 1  },
+	{ .name = "db",  .control = 0x0, .args = false, .size = 1  },
+	{ .name = "",    .control = 0x0, .args = false, .size = 0  }
+};
 
 int main(int argc, char *argv[]) {
 
 	bool debug = false;
 	char *in_file = NULL;
 	char *out_file = NULL;
-	struct db_entry db[MAX_VARS];
+	struct db_entry db[MAX_VARS+1];
+
+
+	memset(db, 0, sizeof(db));
 
 	for(int  optind = 1; optind < argc; optind++) {
 		if( argv[optind][0] == '-' ) {
@@ -98,30 +121,6 @@ int main(int argc, char *argv[]) {
 		char *t = token(fdin);
 		if(!t) break;
 
-		if( strcmp(t, "lda") == 0)
-			off++;
-
-		if( strcmp(t, "add") == 0)
-			off++;
-
-		if( strcmp(t, "out") == 0)
-			off++;
-
-		if( strcmp(t, "sta") == 0)
-			off++;
-
-		if( strcmp(t, "jmp") == 0)
-			off++;
-
-		if( strcmp(t, "jc") == 0)
-			off++;
-
-		if( strcmp(t, "ldi") == 0)
-			off++;
-
-		if( strcmp(t, "hlt") == 0)
-			off++;
-
 		if( strcmp(t, "db") == 0)  {
 
 			char *arg1 = token(fdin);
@@ -131,11 +130,18 @@ int main(int argc, char *argv[]) {
 			db[dbpos].off = (uint8_t) off;
 
 			printf("%s @ 0x%01x\n", arg1, off);
-
 			free(arg2);
 
-			off++;
 			dbpos++;
+		}
+
+		int i = 0;
+		while(instructions[i].size != 0) {
+			if(strcmp(t, instructions[i].name) == 0) {
+				off += instructions[i].size;
+				break;
+			}
+			i++;
 		}
 
 		free(t);
@@ -156,6 +162,32 @@ int main(int argc, char *argv[]) {
 	close(fdout);
 }
 
+int match_index(char *str) {
+
+	int len = strlen(str);
+
+	if(len > 0 && str[0] == '[' && str[len-1] == ']')
+		return 1;
+
+	return 0;
+
+}
+
+int match_db_name(char *db_name, char *name) {
+
+	int min = strlen(db_name);
+	int len = strlen(name);
+
+	if( (len - 1) < min )
+		min = len - 1;
+
+	if( len > 2 && strncmp(name+1, db_name, min) == 0 ) {
+		return 1;
+	}
+
+	return 0;
+}
+
 void compile(int fdin, int fdout, char *t, struct db_entry db[]) {
 
 	uint8_t out = 0;
@@ -164,37 +196,18 @@ void compile(int fdin, int fdout, char *t, struct db_entry db[]) {
 	bool has_arg = false;
 	bool found_arg = false;
 
-	if(strcmp(t, "lda") == 0) {
-		control = 0x1;
-		has_arg = true;
-	}
-
-	if(strcmp(t, "add") == 0) {
-		control = 0x2;
-		has_arg = true;
-	}
-
-	if(strcmp(t, "sta") == 0) {
-		control = 0x4;
-		has_arg = true;
-	}
-
-	if(strcmp(t, "jmp") == 0) {
-		control = 0x6;
-		has_arg = true;
-	}
-
-	if(strcmp(t, "ldi") == 0) {
-		control = 0x7;
-		has_arg = true;
-	}
-
-	if(strcmp(t, "jc") == 0) {
-		control = 0x8;
-		has_arg = true;
+	int i = 0;
+	while(instructions[i].size != 0) {
+		if(strcmp(t, instructions[i].name) == 0) {
+			control = instructions[i].control;
+			has_arg = instructions[i].args;
+			break;
+		}
+		i++;
 	}
 
 	if(control) {
+
 		if(has_arg) {
 			char *arg_name = token(fdin);
 			if(!arg_name) {
@@ -202,9 +215,9 @@ void compile(int fdin, int fdout, char *t, struct db_entry db[]) {
 				_exit(-1);
 			}
 
-			if(arg_name[0] == '[' ) {
-				for(int i = 0; i < MAX_VARS; i++) {
-					if(strcmp(db[i].name,arg_name) == 0 ) {
+			if(match_index(arg_name)) {
+				for(int i = 0; db[i].name != NULL; i++) {
+					if(match_db_name(db[i].name,arg_name)) {
 						arg = db[i].off;
 						found_arg = true;
 						break;
@@ -244,18 +257,6 @@ void compile(int fdin, int fdout, char *t, struct db_entry db[]) {
 
 		free(arg1);
 		free(arg2);
-		goto write_out;
-	}
-
-	if(strcmp(t, "out") == 0) {
-		printf("-- out\n");
-		out = 0x5 << 4;
-		goto write_out;
-	}
-
-	if(strcmp(t, "hlt") == 0) {
-		printf("-- hlt\n");
-		out = 0xf << 4;
 		goto write_out;
 	}
 
