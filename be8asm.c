@@ -54,6 +54,7 @@ void compile(int fdin, int fdout, char *t, struct db_entry db[]);
 static struct instruction instructions[] = {
 	{ .name = "lda", .control = 0x1, .args = true, .size = 1  },
 	{ .name = "add", .control = 0x2, .args = true, .size = 1  },
+	{ .name = "sub", .control = 0x3, .args = true, .size = 1  },
 	{ .name = "sta", .control = 0x4, .args = true, .size = 1  },
 	{ .name = "out", .control = 0x5, .args = false, .size = 1  },
 	{ .name = "jmp", .control = 0x6, .args = true, .size = 1  },
@@ -61,7 +62,7 @@ static struct instruction instructions[] = {
 	{ .name = "jc",  .control = 0x8, .args = true, .size = 1  },
 	{ .name = "hlt", .control = 0xf, .args = false, .size = 1  },
 	{ .name = "db",  .control = 0x0, .args = false, .size = 1  },
-	{ .name = "",    .control = 0x0, .args = false, .size = 0  }
+	{ .name = "",    .control = 0x0, .args = false, .size = -1  }
 };
 
 int main(int argc, char *argv[]) {
@@ -136,7 +137,7 @@ int main(int argc, char *argv[]) {
 		}
 
 		int i = 0;
-		while(instructions[i].size != 0) {
+		while(instructions[i].size > 0) {
 			if(strcmp(t, instructions[i].name) == 0) {
 				off += instructions[i].size;
 				break;
@@ -197,7 +198,7 @@ void compile(int fdin, int fdout, char *t, struct db_entry db[]) {
 	bool found_arg = false;
 
 	int i = 0;
-	while(instructions[i].size != 0) {
+	while(instructions[i].size > 0) {
 		if(strcmp(t, instructions[i].name) == 0) {
 			control = instructions[i].control;
 			has_arg = instructions[i].args;

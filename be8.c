@@ -127,6 +127,13 @@ int main(int argc, char *argv[]) {
 				ra += rb;
 				break;
 
+			case 0x3: // sub
+				DEBUGF("0x%01x: sub [0x%01x]\n", pc-1, ir & 0xF);
+				mar = ir & 0xF;
+				rb = ram[mar];
+				ra -= rb;
+				break;
+
 			case 0x4: // sta
 				DEBUGF("0x%01x: sta [0x%01x]\n", pc-1, ir & 0xF);
 				ram[ir & 0xF] = ra;
